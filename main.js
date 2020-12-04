@@ -1,16 +1,35 @@
-<!DOCTYPE html>
-<html>
-<body>
+var app = require('app');
+var BrowserWindow = require('browser-window');
+var glob = require('glob');
 
-<h2>My First Web Page</h2>
-<p>My first paragraph.</p>
+var mainWindow = null;
 
-<p>Never call document.write after the document has finished loading.
-It will overwrite the whole document.</p>
+// Require and setup each JS file in the main-process dir
+glob('main-process/**/*.js', function (error, files) {
+  if (error) return console.log(error);
+  files.forEach(function (file) {
+    require('./' + file).setup();
+  });
+});
 
-<script>
-document.write(5 + 6);
-</script>
+function createWindow () {
+  mainWindow = new BrowserWindow({ width: 920, height: 900 });
+  mainWindow.loadURL('file://' + __dirname + '/index.html');
+  mainWindow.on('closed', function () {
+    mainWindow = null;
+  });
+}
 
-</body>
-</html> 
+app.on('ready', createWindow);
+
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', function () {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
